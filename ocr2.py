@@ -1,6 +1,7 @@
 from imageUtils import *
 import neuralNet as nn
 import numpy as np 
+import geomUtil as geom
 
 img = loadImage('img/alphabet.png')
 imgbin = getBinaryImage(getGrayscaleImage(img))
@@ -37,6 +38,11 @@ displayImageGrid([imgbin, imgWithContours], 1, plotImage)
 imObjs = getBinaryImageObjects(imgbin)
 imObjs = sorted(imObjs, key = lambda o: o[0][0])
 
+distances = np.array(geom.getConsecutiveXDistancesBetweenRects(geom.imObjToRects(imObjs)))
+print distances
+
+kmeans = geom.getKMeans(2, distances.reshape(len(distances), 1))
+
 plt.figure()
 
 displayImageGrid([imo[1] for imo in imObjs], 5, plotImage)
@@ -45,6 +51,6 @@ classificationInput = [nn.transformImageForAnn(obj[1]) for obj in imObjs]
 
 outputIndices = nn.classify(ann, classificationInput)
 
-print [alphabet[i] for i in outputIndices]
+print nn.getStringOutputWithSpaces(outputIndices, kmeans.labels_, alphabet)
 
 plt.show()

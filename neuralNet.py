@@ -36,6 +36,17 @@ def trainAnn(ann, X_train, y_train):
 def getMaxIndex(arr):
 	return max(enumerate(arr), key=lambda x: x[1])[0]
 
+
+def getStringOutputWithSpaces(outputIndices, spaces, alphabet):
+	result = ''
+	for i, oi in enumerate(outputIndices):
+		result += alphabet[oi]
+		if i<len(spaces) and spaces[i]:
+			result+= ' '
+
+	return result
+
+
 def classify(ann, inputs):
 	outputs = ann.predict(np.array(inputs, np.float32))
 	return [getMaxIndex(output) for output in outputs]
