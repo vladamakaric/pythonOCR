@@ -1,6 +1,18 @@
 from sklearn.cluster import KMeans
+from scipy import stats
+import numpy as np 
 
+def getBinaryImgObjectsAngleAndCenter(imObjs):
+	xs = [io[0][0] for io in imObjs]
+	ys = [io[0][1] for io in imObjs]
 
+	avgx = sum(xs)/len(xs)
+	avgy = sum(ys)/len(ys)
+
+	slope, intercept = stats.linregress(xs,ys)[:2]
+	angle = -(180/np.pi)*np.arctan(slope)
+
+	return angle, (avgx, avgy) 
 
 
 def partition(arr, partitionIndex, numArrs):
@@ -17,8 +29,6 @@ def partition(arr, partitionIndex, numArrs):
 	values = zip(*dicItems)[1]
 
 	return values
-
-
 
 def getConsecutiveXDistancesBetweenRects(rects):
 	"""rects are x,y,w,h tuples"""

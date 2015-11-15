@@ -30,6 +30,10 @@ def displayImageGrid(images, cols, plotFunc):
 		plt.subplot(rows, cols, i+1)
 		plotFunc(img)
         
+def getRotatedImage(img, angle, center):
+	rows, cols = img.shape[:2]
+	M = cv2.getRotationMatrix2D(center,-angle,1)
+	return cv2.warpAffine(img,M,(cols,rows))
 
 def getBinaryImage(gsImg):
     return cv2.threshold(gsImg, 127, 255, cv2.THRESH_BINARY)[1]
