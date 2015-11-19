@@ -1,6 +1,9 @@
 from sklearn.cluster import KMeans
+import cv2
 from scipy import stats
 import numpy as np 
+from unionFind import *
+from misc import *
 
 def getBinaryImgObjectsAngleAndCenter(imObjs):
 	xs = [io[0][0] for io in imObjs]
@@ -14,21 +17,34 @@ def getBinaryImgObjectsAngleAndCenter(imObjs):
 
 	return angle, (avgx, avgy) 
 
+def intervalDistance(al, ar, bl, br):
+    if al < bl:
+        return bl - ar
+    else:
+        return al - br
 
-def partition(arr, partitionIndex, numArrs):
-	partitionDic = {}
+def getContourSetRect(cs):
 
-	for el in zip(arr, partitionIndex):
-		if el[1] not in partitionDic:
-			partitionDic[el[1]] = []
+	x = [cv2.boundingRect(c)[0] for c in cs]
+	y = [cv2.boundingRect(c)[1] for c in cs]
+	w = [cv2.boundingRect(c)[2] for c in cs]
+	h = [cv2.boundingRect(c)[3] for c in cs]
 
-		partitionDic[el[1]].append(el[0]) 
+	right = max([ z[0] + z[1] for z in zip(x,w)])
+	bottom = max([ z[0] + z[1] for z in zip(y,h)])
+	x = min(x)
+	y = min(y)
 
-	dicItems = sorted(partitionDic.items(), key= lambda i: i[0])
+	return x,y , right - x, bottom - y
 
-	values = zip(*dicItems)[1]
+def rectDistance(a,b):
+    ax,ay,aw,ah = a
+    bx,by,bw,bh = b
 
-	return values
+    xdist = intervalDistance(ax, ax + aw, bx, bx + bw)
+    ydist = intervalDistance(ay, ay + aw, by, by + bw)
+
+    return xdist, ydist
 
 def getConsecutiveXDistancesBetweenRects(rects):
 	"""rects are x,y,w,h tuples"""
@@ -40,6 +56,17 @@ def getConsecutiveXDistancesBetweenRects(rects):
 
 def imObjToRects(imObjs):
 	return [(i[0][0], i[0][1], i[1].shape[1], i[1].shape[0]) for i in imObjs]
+
+def mergeContours(contours, criterion):
+
+	contourPartition = UnionFind(len(contours))
+
+	for i in xrange(0,len(contours)):
+		for j in range(i+1, len(contours)):
+			if not contourPartition.find(i,j) and criterion(contours[i], contours[j]):
+				contourPartition.union(i,j)
+
+	return partition(contours, contourPartition.getLabelArray())
 
 def getKMeans(k, data):
 	"""objekat ima labels_ i cluster_centers_"""
