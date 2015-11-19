@@ -42,7 +42,7 @@ nn.trainAnn(ann, trainingInput, nn.getStandardOutputVectors(len(trainingInput)))
 
 #---------------------------------------------------------------------------
 
-img = loadImage('img/test1.jpg')
+img = loadImage('img/test2.jpg')
 
 imgbin = getBinaryImage(getGrayscaleImage(img))
 imgbin = 255 - dilate(erode(imgbin,1),1)
@@ -51,10 +51,17 @@ contours = getImageContours(imgbin)
 contourSets = geom.mergeContours(contours, mergCrit)
 imObjs = getBinaryImageObjectsFromContourSets(imgbin, contourSets)
 
+#------------------------------
+angle, center = geom.getBinaryImgObjectsAngleAndCenter(imObjs)
+imgbin = getRotatedImage(imgbin, angle, center)
+imgbin = getBinaryImage(imgbin)
+#------------------------------
 
 
 
-
+contours = getImageContours(imgbin)
+contourSets = geom.mergeContours(contours, mergCrit)
+imObjs = getBinaryImageObjectsFromContourSets(imgbin, contourSets)
 
 imObjs = sorted(imObjs, key = lambda o: o[0][0])
 
@@ -67,4 +74,3 @@ kmeans = geom.getKMeans(2, distances.reshape(len(distances), 1))
 classificationInput = [nn.transformImageForAnn(obj[1]) for obj in rowImObjs]
 outputIndices = nn.classify(ann, classificationInput)
 print nn.getStringOutputWithSpaces(outputIndices, kmeans.labels_, alphabet)
-
